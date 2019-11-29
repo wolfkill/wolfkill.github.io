@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Mysql引擎区别 - SpuerCheng | Blog
+          Hadoop单节点安装及常见问题 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/mysql/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop1/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -71,7 +71,7 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('/img/article_header/article_header.png')
+            background-image: url('/img/article_header/article_bg.jpg')
             /*post*/
         
     }
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#mysql" title="mysql">mysql</a>
+                              <a class="tag" href="/tags/#Hadoop Ssh" title="Hadoop Ssh">Hadoop Ssh</a>
                             
                         </div>
-                        <h1>Mysql引擎区别</h1>
+                        <h1>Hadoop单节点安装及常见问题</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2017-07-11
+                            2019-11-29
                         </span>
                     </div>
                 
@@ -212,19 +212,23 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h1 id="概要">概要</h1>
-<p>InnoDB和MyISAM是很多人在使用MySQL时最常用的两个表类型，这两个表类型各有优劣，5.7之后就不一样了</p>
-<h2 id="事务和外键">事务和外键</h2>
-<p>InnoDB具有事务，支持4个事务隔离级别，回滚，崩溃修复能力和多版本并发的事务安全，包括ACID。如果应用中需要执行大量的INSERT或UPDATE操作，则应该使用InnoDB，这样可以提高多用户并发操作的性能。<br>
-MyISAM管理非事务表。它提供高速存储和检索，以及全文搜索能力。如果应用中需要执行大量的SELECT查询，那么MyISAM是更好的选择。</p>
-<h2 id="全文索引">全文索引</h2>
-<p>Innodb不支持全文索引，如果一定要用的话，最好使用sphinx等搜索引擎。<br>
-myisam对中文支持的不是很好不过新版本的Innodb已经支持了</p>
-<h2 id="锁">锁</h2>
-<p>mysql支持三种锁定级别，行级、页级、表级;<br>
-MyISAM支持表级锁定，提供与 Oracle 类型一致的不加锁读取(non-locking read in SELECTs)；<br>
-InnoDB支持行级锁，InnoDB表的行锁也不是绝对的，如果在执行一个SQL语句时MySQL不能确定要扫描的范围，InnoDB表同样会锁全表，注意间隙锁的影响；<br>
-例如update table set num=1 where name like “%aaa%”；</p>
+                <h3 id="hadoop官网地址httphadoopapacheorg">Hadoop官网地址：<a href="http://hadoop.apache.org/" target="_blank" rel="noopener">http://hadoop.apache.org/</a></h3>
+<p>hadoop官网十分详细的介绍了hadoop的主要功能，有一定英语阅读习惯的小伙伴，可以通过官网学习。hadoop虽然在linux和window系统上都能安装，但是我们一般还是选择在linux系统上运行hadoop。</p>
+<h3 id="hadoop26版本安装步骤">hadoop2.6版本安装步骤</h3>
+<p>1、安装hadoop之前，一些基础软件必须安装，安装与hadoop版本匹配的JDK,可以从这个链接中查看hadoop版本对应的JDK版本.<a href="https://wiki.apache.org/hadoop/HadoopJavaVersions" target="_blank" rel="noopener">enter description here</a>;<br>
+SSH必须安装来运行hadoop脚本管理其它hadoop节点(默认情况下hadoop都是安装好了的)。<br>
+2、JDK安装<br>
+linux环境下jdk有两种方法，其实两种方法都是比较简单的。</p>
+<ol>
+<li>yum一键安装：<br>
+yum -y list java* 查看可安装的JDK版本，会出现所有JDK版本，然后选择自己要安装的版本，这里以jdk1.8为例，执行 ：<br>
+yum install -y java-1.8.0-openjdk-devel.x86_64<br>
+安装好执行 java -version命令如果出现对应JDK版本则说明安装成功。<br>
+2.手动安装：<br>
+到Oracle官网下载需要安装的JDK版本，使用rz命令上传到对应的Linux路径下面。创建路径<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">	mkdir -p /usr/java #创建路径</span><br><span class="line">	tar -zxvf xxxx.tar.gz -C /usr/java #解压文件</span><br><span class="line">	chown -R root:root /usr/java #修正java的权限</span><br><span class="line">	``` </span><br><span class="line">	配置环境变量，环境变量文件有三个地方可以配置，</span><br><span class="line">	1：/etc/proofile 文件配置的是全局的环境变量，这里配置的环境变量所有人都可以使用。</span><br><span class="line">	2.; ~/.bash_profile 和~/.bashrc配置的环境变量只给自己使用，不给其它人使用,个人环境变量建议配置在~/.bashrc下。</span><br><span class="line">	3：export JAVA_HOME=/usr/java/jdk1.8xxxx</span><br><span class="line">	export PATH = $&#123;JAVA_HOME&#125;/bin:$&#123;JAVA_HOME&#125;/sbin:$PATH</span><br><span class="line">	4：which java 查看是否配置成功java环境变量。</span><br><span class="line">	</span><br><span class="line">3、hadoop的安装</span><br><span class="line">我们选用的是CDH版本的hadoop2.6。使用CDH的好处是可以不用考虑hadoop版本和后面要学习的HIVE、Spark、Hbase等的兼容问题，CDH都整理好了。</span><br><span class="line"></span><br><span class="line">```shell</span><br><span class="line">	useradd hadoop #创建hadoop用户来安装管理Hadoop</span><br><span class="line">	su -hadoop #切换到Hadoop用户</span><br><span class="line">	mkdir app software sourcecode log tmp data lib</span><br><span class="line"><span class="meta">	#</span>安装之前先创建好要安装的目录 app目录放解压的数据，software放压缩包，data放数据，lib放第三方的jar包，log放日志文件夹，sourcecode源代码编译，tmp临时文件夹</span><br><span class="line">	mv /tmp/hadoop-2.6.0-cdh5.16.2.tar.gz  /home/hadoop/software/  #移动压缩包到software目录</span><br><span class="line">	chown hadoop:hadoop /home/hadoop/software/*</span><br><span class="line"><span class="meta">	#</span>修正文件所属用户用户组信息</span><br><span class="line">	tar -xzvf hadoop-2.6.0-cdh5.16.2.tar.gz -C ../app/   #解压压缩包到app目录下</span><br><span class="line">	ln -s hadoop-2.6.0-cdh5.16.2 hadoop #做软连接，软连接的好处就是可以不用担心版本的升级从而导致一些列的配置的环境的变化，只需要重新做软连接就可以了。</span><br><span class="line">	vi hadoop-env.sh #hadoop里的jdk默认环境变量不能用，需要重新指定。</span><br><span class="line">	cat /etc/hosts  #配置本地的主机名称和对应的IP地址到hosts文件下。</span><br><span class="line">	vi etc/hadoop/core-site.xml  #配置core-site.xml文件，具体可以看官网，里面十分清晰。</span><br><span class="line">	最后ssh的无密码信任关系需要配置，就是下面这三句话</span><br><span class="line"><span class="meta">	$</span> ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa</span><br><span class="line"><span class="meta">  	$</span> cat ~/.ssh/id_dsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"><span class="meta">	$</span> chmod 0600 ~/.ssh/authorized_keys</span><br><span class="line">	vi .bashrc #配置hadoop的个人环境变量</span><br><span class="line">	. /etc/bashrc #让环境变量生效</span><br><span class="line">	hdfs namenode -format #格式化namenode</span><br><span class="line">	start-dfs.sh 启动hadoop单节点集群。</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>ok 大功告成。可以到50070端口查看web界面。</p>
 
                 
 
@@ -232,10 +236,10 @@ InnoDB支持行级锁，InnoDB表的行锁也不是绝对的，如果在执行�
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/article/hadoop1/" data-toggle="tooltip" data-placement="top" title="Hadoop单节点安装及常见问题">&larr; Previous Post</a>
-                        </li>
                     
+                        <li class="next">
+                            <a href="/article/mysql/" data-toggle="tooltip" data-placement="top" title="Mysql引擎区别">Next Post &rarr;</a>
+                        </li>
                     
                 </ul>
 
@@ -278,18 +282,6 @@ InnoDB支持行级锁，InnoDB表的行锁也不是绝对的，如果在执行�
             <!-- Tabe of Content -->
             <!-- Table of Contents -->
 
-  
-    
-      <aside id="sidebar">
-        <div id="toc" class="toc-article">
-        <strong class="toc-title">Contents</strong>
-        
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#概要"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x6982;&#x8981;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#事务和外键"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">&#x4E8B;&#x52A1;&#x548C;&#x5916;&#x952E;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#全文索引"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">&#x5168;&#x6587;&#x7D22;&#x5F15;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#锁"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">&#x9501;</span></a></li></ol></li></ol>
-        
-        </div>
-      </aside>
-    
-
                 
             <!-- Sidebar Container -->
             <div class="
@@ -304,7 +296,7 @@ InnoDB支持行级锁，InnoDB表的行锁也不是绝对的，如果在执行�
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#mysql" title="mysql">mysql</a>
+                          <a class="tag" href="/tags/#Hadoop Ssh" title="Hadoop Ssh">Hadoop Ssh</a>
                         
                     </div>
                 </section>
