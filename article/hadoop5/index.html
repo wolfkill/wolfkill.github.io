@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          HDFS常用命令总结 - SpuerCheng | Blog
+          副本放置、读写流程、PID文件、磁盘均衡、安全模式 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop3/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop5/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#hdfs hadoop" title="hdfs hadoop">hdfs hadoop</a>
+                              <a class="tag" href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
                             
                         </div>
-                        <h1>HDFS常用命令总结</h1>
+                        <h1>副本放置、读写流程、PID文件、磁盘均衡、安全模式</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2017-12-02
+                            2018-01-15
                         </span>
                     </div>
                 
@@ -212,45 +212,69 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>1、Hadoop安装好之后，配置hadoop安装目录的 <strong>bin、sbin</strong>文件到我们的个人环境变量 <strong>.bashrc</strong>下，hdfs命令存储在这两个文件夹下面。</p>
-<p>2、==-help：显示帮助信息==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -help rm</span><br></pre></td></tr></table></figure>
-<p>3、==-ls:显示目录信息==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -ls /</span><br></pre></td></tr></table></figure>
-<p>4、==-mkdir:在hdfs上创建目录==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -mkdir /user/test</span><br></pre></td></tr></table></figure>
-<p>5、==-moveFromLocal：从本地复制到HDFS==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -moveFromLocal ~/test.txt /home/test/</span><br></pre></td></tr></table></figure>
-<p>6、==-appendToFile：追加一个文件到已存在的文件末尾==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -appendToFile /a.txt /b.txt</span><br></pre></td></tr></table></figure>
-<p>7、==-cat:显示文件内容==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -appendToFile /a.txt /b.txt</span><br></pre></td></tr></table></figure>
-<p>8、==-chmod、-chown：修改文件权限，所有者==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -chmod 777 /a.txt</span><br><span class="line">hadoop fs -chown admin:ysir /a.txt</span><br></pre></td></tr></table></figure>
-<p>9、==-copyFromLocal：从本地文件系统中拷贝文件到HDFS==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -copyFromLocal a.txt /</span><br></pre></td></tr></table></figure>
-<p>10、==-copyToLocal：从HDFS拷贝到本地==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -copyToLocal /a.txt ~/</span><br></pre></td></tr></table></figure>
-<p>11、==-cp：在HDFS中拷贝文件==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -cp /aaa/a.txt /bbb/</span><br></pre></td></tr></table></figure>
-<p>12、==-mv：在HDFS目录中移动文件==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -mv /aaa/a.txt /bbb/</span><br></pre></td></tr></table></figure>
-<p>13、==-get：从HDFS中拷贝到本地，等同于copyToLocal==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -get /aaa/a.txt</span><br></pre></td></tr></table></figure>
-<p>14、==-getmerge：合并下载多个文件==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -getmerge /logs/* ~/logs.log # 将HDFS上/logs/路径下的所有文件合并下载到本地~/logs.log文件中</span><br></pre></td></tr></table></figure>
-<p>15、==-put：将本地文件上传到HDFS，等同于copyFromLocal==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -put ~/a.txt /</span><br></pre></td></tr></table></figure>
-<p>16、== -tail：显示文件末尾的内容  ==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -tail /a.txt</span><br></pre></td></tr></table></figure>
-<p>17、== -rm：删除文件夹或者文件==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -rm /user/ysir/a.txt</span><br></pre></td></tr></table></figure>
-<p>18、==-rmdir：删除空目录==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -mkdir /temp</span><br></pre></td></tr></table></figure>
-<p>19、==-du：统计文件夹的大小信息==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -du -s -h /temp</span><br></pre></td></tr></table></figure>
-<p>20、==-setrep：设置HDFS文件中的副本数量==</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -setrep 5 /a.txt</span><br></pre></td></tr></table></figure>
+                <h3 id="hdfs副本放置策略">hdfs副本放置策略</h3>
+<ul>
+<li>第一个副本放置在上传文件的DataNode服务器节点上，如果是在集群外提交，则随机放置在一个DataNode服务器节点上。</li>
+<li>第二个副本放置在与第一个DataNode不同的机架的一个节点上。</li>
+<li>第三个副本放置在与第二个DataNode相同的机架的不同节点上。</li>
+<li>更多副本：随机节点放置。</li>
+<li><em>为了最小化全局带宽消耗和读取延迟，HDFS尝试满足来自离读取器最近的副本的读取请求。如果在读取器节点所在的机架上存在一个副本，则该副本首选满足读取请求。如果HDFS集群跨越多个数据中心，那么与任何远程副本相比，本地数据中心中的副本是首选的。</em></li>
+</ul>
+<h3 id="hdfs磁盘放置策略">Hdfs磁盘放置策略：</h3>
+<p>1、在hdfs-site.xml 里的dfs.datanode.data.dir参数来配置，一般会配置多个目录，并且是在不同设备上的（不同磁盘）；<br>
+2、当我们往HDFS上写数据块的时候，DataNode将会使用volume选择策略来为这个块选择存储的地方。通过参数：dfs.datanode.fsdataset.volume.choosing.policy<br>
+round-robin  available space</p>
+<h3 id="hdfs读写流程">hdfs读写流程</h3>
+<ul>
+<li>
+<p>完全理解读写流程之前有几个基本概念需要了解。</p>
+<ul>
+<li>
+<p><strong>block</strong>:这个应该大家都很了解，文件上传之前需要分块，这个块就是block，默认大小是128M,这个块的大小可以修改，但是不建议，因为<strong>快太小的话</strong>，寻址时间占比过高。块太大：<strong>map</strong>任务数太少，作业执行速度慢。这个是读写流程里的最大单位。</p>
+</li>
+<li>
+<p><strong>packet</strong>：packet是第二大的单位，它是client端向DataNode，或DataNode的PipLine之间传数据的基本单位，默认64KB。^[字节也叫Byte，是计算机数据的基本存储单位。<br>
+8bit(位)=1Byte(字节)<br>
+1024Byte(字节)=1KB<br>
+1024KB=1MB<br>
+1024MB=1GB<br>
+1024GB=1TB<br>
+K是千 M是兆 G是吉咖 T是太拉<br>
+二进制数系统中，每个0或1就是一个位(bit)，位是数据存储的最小单位。其中8 bit就称为一个字节（Byte）。计算机中的CPU位数指的是CPU一次能处理的最大位数。例如32位计算机的CPU一次最多能处理32位数据。<br>
+字节（Byte）是通过网络传输信息（或在硬盘或内存中存储信息）的单位。<br>
+字节是计算机信息技术用于计量存储容量和传输容量的一种计量单位，1个字节等于8位二进制。<br>
+在ASCII码中，一个英文字母（不分大小写）占一个字节的空间，一个中文汉字占两个字节的空间。<br>
+英文标点占一个字节，中文标点占两个字节。]由注释我们可以知道，64k=64<em>1024Byte</em>8=524288个二进制位。<strong>这个不重要，哈哈</strong></p>
+</li>
+<li>
+<p><strong>chunk</strong>：：chunk是最小的单位，它是client向DataNode，或DataNode的PipLine之间进行数据校验的基本单位，默认512Byte，因为用作校验，故每个chunk需要带有4Byte的校验位。所以实际每个chunk写入packet的大小为516Byte。由此可见真实数据与校验值数据的比值约为128 : 1。（即64*1024 / 512）。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>例如，在client端向DataNode传数据的时候，HDFSOutputStream会有一个chunk buff，写满一个chunk后，会计算校验和并写入当前的chunk。之后再把带有校验和的chunk写入packet，当一个packet写满后，packet会进入dataQueue队列，其他的DataNode就是从这个dataQueue获取client端上传的数据并存储的。同时一个DataNode成功存储一个packet后之后会返回一个ack packet，放入ack^[ACK (Acknowledgement)即是确认字符，在数据通信中，接收站发给发送站的一种传输类控制字符。表示发来的数据已确认接收无误。] Queue中。</p>
+<p><strong><em>HDFS写流程</em></strong><br>
+1、Client初始化FileSystem,调用Create(filepath)方法，与NN（元数据节点）进行<strong>RPC</strong>通信，check是否存在及是否有权限创建，假如没有权限，就返回错误信息。假如OK就创建一个新文件，不关联任何的block块，返回一DFSDataOutputStream对象。若通过检查，直接先将操作写入EditLog，并返回输出流对象。<br>
+2、客户端对象DFSOutputStream用于写数据，将数据分成块128M，写入data queue,<br>
+data queue由Data Streamer读取。client将NameNode返回的分配的可写的DataNode列表和Data数据一同发送给最近的第一个DataNode节点，此后client端和NameNode分配的多个DataNode构成pipeline管道，client端向输出流对象中写数据。client每向第一个DataNode写入一个packet，这个packet便会直接在pipeline里传给第二个、第三个…DataNode。<br>
+3、每个DataNode写完一个块后，会返回确认信息。<br>
+4、写完数据，关闭输输出流。<br>
+5、发送完成信号给NameNode。</p>
+<p><strong><em>HDFS读流程</em></strong><br>
+1、客户端调用dfs系统的open(filepath)方法与NN进行RPC通信，获取要读取的BLOCK块的DN位置。也就是dfsdatainputstream对象。<br>
+2、客户端调用dfsdatainputstream对象的read()方法，与最近的datanode进行read，读取完成后会check；加入ok就关闭与当前DN的通信；假如失败，会记录失败块，+DN信息，下次不再读取；会去该块的第二个DN	地址读取。<br>
+3、假如block列表读取完成后，文件还未结束，就再次FileSystem会从NN获取该文件的下一批的block列表。（对客户端来说，操作是透明无感知的，感觉是连续的数据流。）</p>
+<p><strong><em>HDFS磁盘均衡</em></strong><br>
+背景： 当HDFS  DataNode节点挂载多个磁盘时会出现两种数据不均衡的情况。<br>
+1）不同datanode节点之间的数据不均衡；<br>
+2）挂载数据的磁盘之间的数据不均衡；</p>
+<p><strong>同一个DataNode中不同磁盘间的数据均衡：</strong><br>
+1、首先确保每个DataNode上的dfs.disk.balancer.enable 参数设置成true；<br>
+2、df -h查看磁盘使用情况；<br>
+3、查看命令帮助可以看到这几个参数：plan | execute | query | cancel |report<br>
+4、HDFS磁盘平衡器通过使用DataNode报告给NameNode的磁盘使用信息并结合计划程序来计算指定DataNode上数据移动计划的步骤，每个步骤指定要移动数据的源卷和目标卷，以及预计移动的数据量。<br>
+<strong>不同DataNode中数据均衡：</strong></p>
+
                 
 
                 <hr>
@@ -258,12 +282,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/hadoop5/" data-toggle="tooltip" data-placement="top" title="副本放置、读写流程、PID文件、磁盘均衡、安全模式">&larr; Previous Post</a>
+                            <a href="/article/hadoop1/" data-toggle="tooltip" data-placement="top" title="Hadoop单节点安装及常见问题">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/hadoop4/" data-toggle="tooltip" data-placement="top" title="Block、小文件、HDFS架构、SNN流程">Next Post &rarr;</a>
+                            <a href="/article/hadoop3/" data-toggle="tooltip" data-placement="top" title="HDFS常用命令总结">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -313,7 +337,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="nav">none</ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs副本放置策略"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">hdfs&#x526F;&#x672C;&#x653E;&#x7F6E;&#x7B56;&#x7565;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs磁盘放置策略"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Hdfs&#x78C1;&#x76D8;&#x653E;&#x7F6E;&#x7B56;&#x7565;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs读写流程"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">hdfs&#x8BFB;&#x5199;&#x6D41;&#x7A0B;</span></a></li></ol>
         
         </div>
       </aside>
@@ -333,7 +357,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#hdfs hadoop" title="hdfs hadoop">hdfs hadoop</a>
+                          <a class="tag" href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
                         
                     </div>
                 </section>

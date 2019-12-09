@@ -243,6 +243,41 @@ hadoop2.6版本安装步骤
 
 <div class="post-preview">
 
+    <a href="/article/hadoop5/">
+        <h2 class="post-title">
+                                 
+            副本放置、读写流程、PID文件、磁盘均衡、安全模式
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            hdfs副本放置策略
+
+第一个副本放置在上传文件的DataNode服务器节点上，如果是在集群外提交，则随机放置在一个DataNode服务器节点上。
+第二个副本放置在与第一个DataNode不同的机架的一个节点上。
+第三个副本放置在与第二个DataNode相同的机架的不同节点上。
+更多副本：随机节点放置。
+为了最小化全局带宽消耗和读取延迟，HDFS尝试满足来自离读取器最近的副本的读取请求。如果......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by SpuerCheng on
+            2018-01-15
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/article/hadoop3/">
         <h2 class="post-title">
                                  
@@ -412,19 +447,23 @@ MyISAM管理非事务表。它提供高速存储和检......
     <div class="tags">
         
             
-            <a href="/tags/#Hadoop Ssh" title="Hadoop Ssh" rel="1">Hadoop Ssh</a>
-            
-        
-            
             <a href="/tags/#hdfs hadoop" title="hdfs hadoop" rel="2">hdfs hadoop</a>
             
         
             
-            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
+            <a href="/tags/#Hadoop Ssh" title="Hadoop Ssh" rel="1">Hadoop Ssh</a>
+            
+        
+            
+            <a href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer" rel="1">hdfs hadoop pid safemode balancer</a>
             
         
             
             <a href="/tags/#mysql" title="mysql" rel="1">mysql</a>
+            
+        
+            
+            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
             
         
     </div>
@@ -482,6 +521,10 @@ MyISAM管理非事务表。它提供高速存储和检......
         </li>
       
         <li>
+          <a href="/article/hadoop5/">副本放置、读写流程、PID文件、磁盘均衡、安全模式</a>
+        </li>
+      
+        <li>
           <a href="/article/hadoop3/">HDFS常用命令总结</a>
         </li>
       
@@ -491,10 +534,6 @@ MyISAM管理非事务表。它提供高速存储和检......
       
         <li>
           <a href="/article/hadoop2/">Hadoop的jps命令详解和linux的两种机制</a>
-        </li>
-      
-        <li>
-          <a href="/article/mysql/">Mysql引擎区别</a>
         </li>
       
     </ul>
@@ -517,7 +556,7 @@ MyISAM管理非事务表。它提供高速存储和检......
         
     <h5>ARCHIVES</h5>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
     </div>
 
         <hr>
