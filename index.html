@@ -141,14 +141,14 @@
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
@@ -243,6 +243,37 @@ hadoop2.6版本安装步骤
 
 <div class="post-preview">
 
+    <a href="/article/hadoop7/">
+        <h2 class="post-title">
+                                 
+            Hdfs上恢复删除文件的方法
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            背景： 每天操作Hdfs难免会误删除文件，下面介绍几种恢复删除文件的方法
+通过垃圾箱恢复
+HDFS 为我们提供了垃圾箱机制，当我们执行hadoop fs -rmr xxx命令之后，文件并不会马上删除，而会被移动到执行这个操作用户的 .Trash 目录下。等待一段时间后才执行真正的删除操作。这个时间可以通过在core-default.xml配置文件里添加fs.trash.interval参数设......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by SpuerCheng on
+            2018-01-15
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/article/hadoop5/">
         <h2 class="post-title">
                                  
@@ -269,6 +300,40 @@ hadoop2.6版本安装步骤
         <div class="tags">
             
               <a href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/mysqltopn/">
+        <h2 class="post-title">
+                                 
+            Mysql TOP函数实现
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言： 工作中常常会遇见，查询分组后的最大值、最小值所在整行的记录或者分组后的topn行记录，但是mysql只支持聚合函数，而不支持分函数。
+准备了一份数据test1
+
+Top1实现
+使用自连接推荐
+1234567891011121314151617181920212223242526272829303132333435363738SELECT	a. NAME,	a.course,	a.sc......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by SpuerCheng on
+            2018-01-10
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#mysql top" title="mysql top">mysql top</a>
             
         </div>
     
@@ -447,11 +512,11 @@ MyISAM管理非事务表。它提供高速存储和检......
     <div class="tags">
         
             
-            <a href="/tags/#hdfs hadoop" title="hdfs hadoop" rel="2">hdfs hadoop</a>
+            <a href="/tags/#Hadoop Ssh" title="Hadoop Ssh" rel="1">Hadoop Ssh</a>
             
         
             
-            <a href="/tags/#Hadoop Ssh" title="Hadoop Ssh" rel="1">Hadoop Ssh</a>
+            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
             
         
             
@@ -459,11 +524,19 @@ MyISAM管理非事务表。它提供高速存储和检......
             
         
             
+            <a href="/tags/#hdfs hadoop" title="hdfs hadoop" rel="2">hdfs hadoop</a>
+            
+        
+            
+            <a href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits" rel="1">hdfs  Trash SnapShot fsimage edits</a>
+            
+        
+            
             <a href="/tags/#mysql" title="mysql" rel="1">mysql</a>
             
         
             
-            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
+            <a href="/tags/#mysql top" title="mysql top" rel="1">mysql top</a>
             
         
     </div>
@@ -521,19 +594,19 @@ MyISAM管理非事务表。它提供高速存储和检......
         </li>
       
         <li>
+          <a href="/article/hadoop7/">Hdfs上恢复删除文件的方法</a>
+        </li>
+      
+        <li>
           <a href="/article/hadoop5/">副本放置、读写流程、PID文件、磁盘均衡、安全模式</a>
         </li>
       
         <li>
+          <a href="/article/mysqltopn/">Mysql TOP函数实现</a>
+        </li>
+      
+        <li>
           <a href="/article/hadoop3/">HDFS常用命令总结</a>
-        </li>
-      
-        <li>
-          <a href="/article/hadoop4/">Block、小文件、HDFS架构、SNN流程</a>
-        </li>
-      
-        <li>
-          <a href="/article/hadoop2/">Hadoop的jps命令详解和linux的两种机制</a>
         </li>
       
     </ul>
@@ -556,7 +629,7 @@ MyISAM管理非事务表。它提供高速存储和检......
         
     <h5>ARCHIVES</h5>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
     </div>
 
         <hr>

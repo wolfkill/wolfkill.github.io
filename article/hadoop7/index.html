@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Hadoop的jps命令详解和linux的两种机制 - SpuerCheng | Blog
+          Hdfs上恢复删除文件的方法 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop2/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop7/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#SuperCheng" title="SuperCheng">SuperCheng</a>
+                              <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
                             
                         </div>
-                        <h1>Hadoop的jps命令详解和linux的两种机制</h1>
-                        <h2 class="subheading">linux和hadoop</h2>
+                        <h1>Hdfs上恢复删除文件的方法</h1>
+                        <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2017-10-11
+                            2018-01-15
                         </span>
                     </div>
                 
@@ -212,18 +212,19 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h3 id="学习笔记">学习笔记.</h3>
-<hr>
-<h3 id="hadoop的jps命令">Hadoop的jps命令</h3>
-<p>1、jps最主要的功能是查看java接口的进程号，全称是jps(Java Virtual Machine Process Status Tool)，显示所有java进程pid的命令。**<br>
-注解：<em>jps命令有个地方很不好，似乎只能显示当前用户的java进程，要显示其他用户的还是只能用unix/linux的ps命令。</em></p>
-<p>2、命令jps类似于Linux下的ps，但它只用于列出Java的进程。直接运行jps不加任何参数，可以列出Java程序的进程ID以及Main函数等名称。 ==其中第一个输出Jps就是jps命令本身，这更加证明此命令的本质也是一个Java程序。</p>
-<p>3、参数-l 输出应用程序main class的完整package名 或者 应用程序的jar文件完整路径名。<img src="./images/jps-l%E5%8F%82%E6%95%B0.png" alt="enter description here"></p>
-<p>4、jps命令其实是查找的/tmp目录下存在的PID，但是Linux /tmp目录是一个临时文件，linux会自动清理里面的文件（默认30天），所以可能会存在进程其实存在，但是由于/tmp目录下的文件被删除，所以jps查看不到进程。<img src="./images/jps%E7%9A%84PID%E4%BD%8D%E7%BD%AE.png" alt="enter description here"><br>
-这在实际生产环境中可能会带来问题。比如，<a href="http://xn--stop-hdfs-4k00a.sh" target="_blank" rel="noopener">要stop-hdfs.sh</a>，但是由于/tmp文件里的PID找不到，所以会一直stop不了。这里我们的解决办法可以修改hadoop的 hadoop-env.sh的环境配置文件，export HADOOP_PID_DIR=/home/Hadoop01/tmp，将进程的PID存放在自己家目录下，自己创建的文件下面。自己创建的文件不会存在，自动清除的机制。</p>
-<p>5、linux还存在另外一种机制就是OOM的Killer机制-----当系统的内存用光的时候，系统内核会自动的Kill掉一个或者一些进程，以使系统能继续的恢复到正常的运行状态。<br>
-OOM Killer每一次Kill掉进程都会在messages日志里留下记录，检查的命令为：cat /var/log/messages | grep oom<br>
-如果经常OO需要考虑调整服务器配置了。</p>
+                <p><strong>背景：</strong> 每天操作Hdfs难免会误删除文件，下面介绍几种恢复删除文件的方法</p>
+<h4 id="通过垃圾箱恢复">通过垃圾箱恢复</h4>
+<p>HDFS 为我们提供了垃圾箱机制，当我们执行hadoop fs -rmr xxx命令之后，文件并不会马上删除，而会被移动到执行这个操作用户的 <strong>.Trash</strong> 目录下。等待一段时间后才执行真正的删除操作。这个时间可以通过在core-default.xml配置文件里添加fs.trash.interval参数设置，默认是分钟。<br>
+<img src="./trash.png" alt="enter description here"><br>
+我么可以看到具体的流程就是如图，然后我们想要恢复的话直接mv到想要的目录就可以了。</p>
+<h4 id="通过快照恢复">通过快照恢复</h4>
+<p>1、hdfs dfsadmin -allowSnapshot  path<br>
+2、hdfs dfs -createSnapshot path snapshotName<br>
+3、hdfs dfs -renameSnapshot  path oldName   newName<br>
+4、hdfs lsSnapshottableDir</p>
+<h4 id="通过编辑日志恢复">通过编辑日志恢复</h4>
+<p>hdfs oev -i edits -o edits.xml<br>
+-i inputfile -o outputfile</p>
 
                 
 
@@ -232,12 +233,12 @@ OOM Killer每一次Kill掉进程都会在messages日志里留下记录，检查�
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/hadoop4/" data-toggle="tooltip" data-placement="top" title="Block、小文件、HDFS架构、SNN流程">&larr; Previous Post</a>
+                            <a href="/article/hadoop1/" data-toggle="tooltip" data-placement="top" title="Hadoop单节点安装及常见问题">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/mysql/" data-toggle="tooltip" data-placement="top" title="Mysql引擎区别">Next Post &rarr;</a>
+                            <a href="/article/hadoop5/" data-toggle="tooltip" data-placement="top" title="副本放置、读写流程、PID文件、磁盘均衡、安全模式">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -287,7 +288,7 @@ OOM Killer每一次Kill掉进程都会在messages日志里留下记录，检查�
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#学习笔记"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x5B66;&#x4E60;&#x7B14;&#x8BB0;.</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hadoop的jps命令"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Hadoop&#x7684;jps&#x547D;&#x4EE4;</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过垃圾箱恢复"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5783;&#x573E;&#x7BB1;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过快照恢复"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5FEB;&#x7167;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过编辑日志恢复"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x7F16;&#x8F91;&#x65E5;&#x5FD7;&#x6062;&#x590D;</span></a></li></ol>
         
         </div>
       </aside>
@@ -307,7 +308,7 @@ OOM Killer每一次Kill掉进程都会在messages日志里留下记录，检查�
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#SuperCheng" title="SuperCheng">SuperCheng</a>
+                          <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
                         
                     </div>
                 </section>
