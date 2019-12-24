@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Hdfs上恢复删除文件的方法 - SpuerCheng | Blog
+          mysql常见 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop7/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/mysql1/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
+                              <a class="tag" href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index">mysql 行转列 列转行 substring_index</a>
                             
                         </div>
-                        <h1>Hdfs上恢复删除文件的方法</h1>
-                        <h2 class="subheading"></h2>
+                        <h1>mysql常见</h1>
+                        <h2 class="subheading">SequenceFile Avro parquet  Orc的对比</h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2018-01-15
+                            2018-03-11
                         </span>
                     </div>
                 
@@ -212,19 +212,216 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p><strong>背景：</strong> 每天操作Hdfs难免会误删除文件，下面介绍几种恢复删除文件的方法</p>
-<h4 id="通过垃圾箱恢复">通过垃圾箱恢复</h4>
-<p>HDFS 为我们提供了垃圾箱机制，当我们执行hadoop fs -rmr xxx命令之后，文件并不会马上删除，而会被移动到执行这个操作用户的 <strong>.Trash</strong> 目录下。等待一段时间后才执行真正的删除操作。这个时间可以通过在core-default.xml配置文件里添加fs.trash.interval参数设置，默认是分钟。<br>
-<img src="./trash.png" alt="enter description here"><br>
-我么可以看到具体的流程就是如图，然后我们想要恢复的话直接mv到想要的目录就可以了。</p>
-<h4 id="通过快照恢复">通过快照恢复</h4>
-<p>1、hdfs dfsadmin -allowSnapshot  path<br>
-2、hdfs dfs -createSnapshot path snapshotName<br>
-3、hdfs dfs -renameSnapshot  path oldName   newName<br>
-4、hdfs lsSnapshottableDir</p>
-<h4 id="通过编辑日志恢复">通过编辑日志恢复</h4>
-<p>hdfs oev -i edits -o edits.xml<br>
--i inputfile -o outputfile</p>
+                <h2 id="mysql行转列">mysql行转列</h2>
+<p>有如下的表格 t</p>
+<table>
+<thead>
+<tr>
+<th>year</th>
+<th>month</th>
+<th>amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1991</td>
+<td>1</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>1991</td>
+<td>2</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>1991</td>
+<td>3</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>1991</td>
+<td>4</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>1</td>
+<td>2.1</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>2</td>
+<td>2.2</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>3</td>
+<td>2.3</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>4</td>
+<td>2.4</td>
+</tr>
+</tbody>
+</table>
+<p>转换成</p>
+<table>
+<thead>
+<tr>
+<th>year</th>
+<th>m1</th>
+<th>m2</th>
+<th>m3</th>
+<th>m4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1991</td>
+<td>1.1</td>
+<td>1.2</td>
+<td>1.3</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>2.1</td>
+<td>2.2</td>
+<td>2.3</td>
+<td>2.4</td>
+</tr>
+</tbody>
+</table>
+<p>下面直接上代码，主要思想就是使用聚合函数，将必要的部分聚合起来哦</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.year,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">1</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">2</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">3</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">4</span>,t.amount,<span class="number">0</span>)) m1</span><br><span class="line"><span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> t.year</span><br></pre></td></tr></table></figure>
+<h2 id="列转行">列转行</h2>
+<p>就是上面的结果表转换回到原始表，方法就是使用union函数将这些组合起来：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.year,<span class="number">1</span> <span class="keyword">as</span> <span class="string">'month'</span>,m1 <span class="keyword">from</span> tmp </span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">2</span> <span class="keyword">as</span> <span class="string">'month'</span>,m2 <span class="keyword">from</span> tmp</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">3</span> <span class="keyword">as</span> <span class="string">'month'</span>,m3 <span class="keyword">from</span> tmp</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">4</span> <span class="keyword">as</span> <span class="string">'month'</span>,m4 <span class="keyword">from</span> tmp</span><br></pre></td></tr></table></figure>
+<h2 id="substring_index的使用拆分逗号分隔的一列">substring_index的使用拆分逗号分隔的一列</h2>
+<table>
+<thead>
+<tr>
+<th>user</th>
+<th>profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>abc</td>
+<td>key1:value,key2:value2</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key1:value,key2:value2,key3:value3,key4:value4</td>
+</tr>
+<tr>
+<td>xyz</td>
+<td>key1:value</td>
+</tr>
+</tbody>
+</table>
+<p><strong>将上面的表格转换成下面的形式</strong></p>
+<table>
+<thead>
+<tr>
+<th>user</th>
+<th>profile_key</th>
+<th>profile_value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>abc</td>
+<td>key1</td>
+<td>value</td>
+</tr>
+<tr>
+<td>abc</td>
+<td>key2</td>
+<td>value2</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key1</td>
+<td>value</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key2</td>
+<td>value2</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key3</td>
+<td>value3</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key4</td>
+<td>value4</td>
+</tr>
+<tr>
+<td>xyz</td>
+<td>key1</td>
+<td>value</td>
+</tr>
+</tbody>
+</table>
+<p>==首先来介绍下这个函数substring_index(str,delim,count)：==<br>
+str:表示要截取u的字符串，这个很容易理解；<br>
+delim:这个表示按照哪个字符来分隔；<br>
+count:正数表示从左到右，负数表示从右到左；<br>
+<a href="http://str=www.wikibt.com" target="_blank" rel="noopener">str=www.wikibt.com</a><br>
+substring_index(str,’.’,1)<br>
+<strong>结果是：www</strong>其实多体会下，也很好理解。</p>
+<p>下面来介绍下mysql自带的一个表，里面记录的是一些函数使用方法的url，我们可以灵活的使用这个表：<strong>mysql.help_topic</strong>里面有553条函数使用方法的url。</p>
+<p>思路：1、先考虑把这个文件格式转化成key:value形式；<br>
+			2、然后再转化成K:V格式。<br>
+			3、使用substring_index函数时，里面的count值如何确定？count值应该是字段长度减一？</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.user,substring_Index(t.profile,<span class="string">","</span>,h.help_topic_id+<span class="number">1</span>) <span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">join</span> mysql.help_topic h <span class="keyword">on</span> h.help_topic_id &lt; <span class="keyword">length</span>(t.profile) - <span class="keyword">length</span>(<span class="keyword">replace</span>(t.profile,<span class="string">","</span>,<span class="string">""</span>))+<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p>上面的sql可以将user分配到每一个profile上；</p>
+<table>
+<thead>
+<tr>
+<th>user</th>
+<th>profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>abc</td>
+<td>key:value1</td>
+</tr>
+<tr>
+<td>abc</td>
+<td>key:value1 ,key2:value2</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key:value1</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key:value1 ,key2:value2</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key:value1 ,key2:value2, key3:value3</td>
+</tr>
+<tr>
+<td>def</td>
+<td>key:value1 ,key2:value2, key3:value3, key4:value4</td>
+</tr>
+<tr>
+<td>xyz</td>
+<td>key:value1</td>
+</tr>
+</tbody>
+</table>
+<p>最后就是比较简单的了：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> a.user,</span><br><span class="line">substring_index(a.profile,<span class="string">":"</span>,<span class="number">1</span>) <span class="keyword">as</span> <span class="string">'profile_key'</span>,</span><br><span class="line">substring_index(a.profile,<span class="string">":"</span>,<span class="number">-1</span>) <span class="keyword">as</span> <span class="string">'profile_value'</span><span class="keyword">from</span> </span><br><span class="line">(<span class="keyword">select</span> t.user,substring_index(substring_Index(t.profile,<span class="string">","</span>,h.help_topic_id+<span class="number">1</span>),<span class="string">","</span>,<span class="number">-1</span>) <span class="keyword">as</span> profile <span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">join</span> mysql.help_topic h <span class="keyword">on</span> h.help_topic_id &lt; </span><br><span class="line"><span class="keyword">length</span>(t.profile) - <span class="keyword">length</span>(<span class="keyword">replace</span>(t.profile,<span class="string">","</span>,<span class="string">""</span>))+<span class="number">1</span>) <span class="keyword">as</span> a;</span><br></pre></td></tr></table></figure>
+<p><strong>好了这就是mysql学习中遇见的几个小问题，这里和大家分享下。</strong></p>
 
                 
 
@@ -233,12 +430,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/mysql1/" data-toggle="tooltip" data-placement="top" title="mysql常见">&larr; Previous Post</a>
+                            <a href="/article/文件存储格式/" data-toggle="tooltip" data-placement="top" title="大数据文件存储格式对比">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/hadoop5/" data-toggle="tooltip" data-placement="top" title="副本放置、读写流程、PID文件、磁盘均衡、安全模式">Next Post &rarr;</a>
+                            <a href="/article/hadoop7/" data-toggle="tooltip" data-placement="top" title="Hdfs上恢复删除文件的方法">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -288,7 +485,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过垃圾箱恢复"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5783;&#x573E;&#x7BB1;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过快照恢复"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5FEB;&#x7167;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过编辑日志恢复"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x7F16;&#x8F91;&#x65E5;&#x5FD7;&#x6062;&#x590D;</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#mysql行转列"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">mysql&#x884C;&#x8F6C;&#x5217;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#列转行"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x5217;&#x8F6C;&#x884C;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#substring_index的使用拆分逗号分隔的一列"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">substring_index&#x7684;&#x4F7F;&#x7528;&#x62C6;&#x5206;&#x9017;&#x53F7;&#x5206;&#x9694;&#x7684;&#x4E00;&#x5217;</span></a></li></ol>
         
         </div>
       </aside>
@@ -308,7 +505,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
+                          <a class="tag" href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index">mysql 行转列 列转行 substring_index</a>
                         
                     </div>
                 </section>
