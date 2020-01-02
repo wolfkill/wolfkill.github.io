@@ -7,6 +7,14 @@
     </url>
 
     <url>
+        <loc>http://www.ruozedata.com/article/hivesql/</loc>
+        <lastmod>2020-01-02T15:25:41.585Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
         <loc>http://www.ruozedata.com/article/mysql1/</loc>
         <lastmod>2019-12-24T14:54:06.140Z</lastmod>
         <changefreq>weekly</changefreq>

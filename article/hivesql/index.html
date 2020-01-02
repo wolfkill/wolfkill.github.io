@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          副本放置、读写流程、PID文件、磁盘均衡、安全模式 - SpuerCheng | Blog
+          hive常见 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop5/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hivesql/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
+                              <a class="tag" href="/tags/#hive" title="hive">hive</a>
                             
                         </div>
-                        <h1>副本放置、读写流程、PID文件、磁盘均衡、安全模式</h1>
-                        <h2 class="subheading"></h2>
+                        <h1>hive常见</h1>
+                        <h2 class="subheading">SequenceFile Avro parquet  Orc的对比</h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2018-01-15
+                            2018-03-14
                         </span>
                     </div>
                 
@@ -212,68 +212,96 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h3 id="hdfs副本放置策略">hdfs副本放置策略</h3>
-<ul>
-<li>第一个副本放置在上传文件的DataNode服务器节点上，如果是在集群外提交，则随机放置在一个DataNode服务器节点上。</li>
-<li>第二个副本放置在与第一个DataNode不同的机架的一个节点上。</li>
-<li>第三个副本放置在与第二个DataNode相同的机架的不同节点上。</li>
-<li>更多副本：随机节点放置。</li>
-<li><em>为了最小化全局带宽消耗和读取延迟，HDFS尝试满足来自离读取器最近的副本的读取请求。如果在读取器节点所在的机架上存在一个副本，则该副本首选满足读取请求。如果HDFS集群跨越多个数据中心，那么与任何远程副本相比，本地数据中心中的副本是首选的。</em></li>
-</ul>
-<h3 id="hdfs磁盘放置策略">Hdfs磁盘放置策略：</h3>
-<p>1、在hdfs-site.xml 里的dfs.datanode.data.dir参数来配置，一般会配置多个目录，并且是在不同设备上的（不同磁盘）；<br>
-2、当我们往HDFS上写数据块的时候，DataNode将会使用volume选择策略来为这个块选择存储的地方。通过参数：dfs.datanode.fsdataset.volume.choosing.policy<br>
-round-robin  available space</p>
-<h3 id="hdfs读写流程">hdfs读写流程</h3>
-<ul>
-<li>
-<p>完全理解读写流程之前有几个基本概念需要了解。</p>
-<ul>
-<li>
-<p><strong>block</strong>:这个应该大家都很了解，文件上传之前需要分块，这个块就是block，默认大小是128M,这个块的大小可以修改，但是不建议，因为<strong>快太小的话</strong>，寻址时间占比过高。块太大：<strong>map</strong>任务数太少，作业执行速度慢。这个是读写流程里的最大单位。</p>
-</li>
-<li>
-<p><strong>packet</strong>：packet是第二大的单位，它是client端向DataNode，或DataNode的PipLine之间传数据的基本单位，默认64KB。^[字节也叫Byte，是计算机数据的基本存储单位。<br>
-8bit(位)=1Byte(字节)<br>
-1024Byte(字节)=1KB<br>
-1024KB=1MB<br>
-1024MB=1GB<br>
-1024GB=1TB<br>
-K是千 M是兆 G是吉咖 T是太拉<br>
-二进制数系统中，每个0或1就是一个位(bit)，位是数据存储的最小单位。其中8 bit就称为一个字节（Byte）。计算机中的CPU位数指的是CPU一次能处理的最大位数。例如32位计算机的CPU一次最多能处理32位数据。<br>
-字节（Byte）是通过网络传输信息（或在硬盘或内存中存储信息）的单位。<br>
-字节是计算机信息技术用于计量存储容量和传输容量的一种计量单位，1个字节等于8位二进制。<br>
-在ASCII码中，一个英文字母（不分大小写）占一个字节的空间，一个中文汉字占两个字节的空间。<br>
-英文标点占一个字节，中文标点占两个字节。]由注释我们可以知道，64k=64<em>1024Byte</em>8=524288个二进制位。<strong>这个不重要，哈哈</strong></p>
-</li>
-<li>
-<p><strong>chunk</strong>：：chunk是最小的单位，它是client向DataNode，或DataNode的PipLine之间进行数据校验的基本单位，默认512Byte，因为用作校验，故每个chunk需要带有4Byte的校验位。所以实际每个chunk写入packet的大小为516Byte。由此可见真实数据与校验值数据的比值约为128 : 1。（即64*1024 / 512）。</p>
-</li>
-</ul>
-</li>
-</ul>
-<p>例如，在client端向DataNode传数据的时候，HDFSOutputStream会有一个chunk buff，写满一个chunk后，会计算校验和并写入当前的chunk。之后再把带有校验和的chunk写入packet，当一个packet写满后，packet会进入dataQueue队列，其他的DataNode就是从这个dataQueue获取client端上传的数据并存储的。同时一个DataNode成功存储一个packet后之后会返回一个ack packet，放入ack^[ACK (Acknowledgement)即是确认字符，在数据通信中，接收站发给发送站的一种传输类控制字符。表示发来的数据已确认接收无误。] Queue中。</p>
-<p><strong><em>HDFS写流程</em></strong><br>
-1、Client初始化FileSystem,调用Create(filepath)方法，与NN（元数据节点）进行<strong>RPC</strong>通信，check是否存在及是否有权限创建，假如没有权限，就返回错误信息。假如OK就创建一个新文件，不关联任何的block块，返回一DFSDataOutputStream对象。若通过检查，直接先将操作写入EditLog，并返回输出流对象。<br>
-2、客户端对象DFSOutputStream用于写数据，将数据分成块128M，写入data queue,<br>
-data queue由Data Streamer读取。client将NameNode返回的分配的可写的DataNode列表和Data数据一同发送给最近的第一个DataNode节点，此后client端和NameNode分配的多个DataNode构成pipeline管道，client端向输出流对象中写数据。client每向第一个DataNode写入一个packet，这个packet便会直接在pipeline里传给第二个、第三个…DataNode。<br>
-3、每个DataNode写完一个块后，会返回确认信息。<br>
-4、写完数据，关闭输输出流。<br>
-5、发送完成信号给NameNode。</p>
-<p><strong><em>HDFS读流程</em></strong><br>
-1、客户端调用dfs系统的open(filepath)方法与NN进行RPC通信，获取要读取的BLOCK块的DN位置。也就是dfsdatainputstream对象。<br>
-2、客户端调用dfsdatainputstream对象的read()方法，与最近的datanode进行read，读取完成后会check；加入ok就关闭与当前DN的通信；假如失败，会记录失败块，+DN信息，下次不再读取；会去该块的第二个DN	地址读取。<br>
-3、假如block列表读取完成后，文件还未结束，就再次FileSystem会从NN获取该文件的下一批的block列表。（对客户端来说，操作是透明无感知的，感觉是连续的数据流。）</p>
-<p><strong><em>HDFS磁盘均衡</em></strong><br>
-背景： 当HDFS  DataNode节点挂载多个磁盘时会出现两种数据不均衡的情况。<br>
-1）不同datanode节点之间的数据不均衡；<br>
-2）挂载数据的磁盘之间的数据不均衡；</p>
-<p><strong>同一个DataNode中不同磁盘间的数据均衡：</strong><br>
-1、首先确保每个DataNode上的dfs.disk.balancer.enable 参数设置成true；<br>
-2、df -h查看磁盘使用情况；<br>
-3、查看命令帮助可以看到这几个参数：plan | execute | query | cancel |report<br>
-4、HDFS磁盘平衡器通过使用DataNode报告给NameNode的磁盘使用信息并结合计划程序来计算指定DataNode上数据移动计划的步骤，每个步骤指定要移动数据的源卷和目标卷，以及预计移动的数据量。<br>
-<strong>不同DataNode中数据均衡：</strong></p>
+                <h2 id="1-hive-sql问题">1、Hive SQL问题</h2>
+<pre><code>下面有这样一张用户登录情况表格，需要求出用户连续登录的天数：
+第一列是登录时间，第二列是用户ID.
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>dt</th>
+<th>userid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2017-12-12</td>
+<td>abc</td>
+</tr>
+<tr>
+<td>2017-12-13</td>
+<td>abc</td>
+</tr>
+<tr>
+<td>2017-12-15</td>
+<td>abc</td>
+</tr>
+<tr>
+<td>2017-12-14</td>
+<td>def</td>
+</tr>
+<tr>
+<td>2017-12-15</td>
+<td>def</td>
+</tr>
+<tr>
+<td>2017-12-17</td>
+<td>def</td>
+</tr>
+<tr>
+<td>2017-12-18</td>
+<td>def</td>
+</tr>
+<tr>
+<td>2017-12-12</td>
+<td>xyz</td>
+</tr>
+<tr>
+<td>2017-12-11</td>
+<td>xyz</td>
+</tr>
+<tr>
+<td>2017-12-13</td>
+<td>xyz</td>
+</tr>
+</tbody>
+</table>
+<p>题目的问题是如何判断时间的连续性，在一个用户下？<br>
+我们考虑对用户按天进行排序，然后用登录时间去减去这个排名，如果是连续登录，得到的时间应该是一个固定的时间值。下面是SQL</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">COUNT</span>(t.dt),t.userid <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> </span><br><span class="line"><span class="keyword">date_sub</span>(a.dt,ROW_NUMBER()<span class="keyword">over</span>(<span class="keyword">PARTITION</span> <span class="keyword">BY</span> a.userid <span class="keyword">ORDER</span> <span class="keyword">BY</span> a.dt)) <span class="keyword">as</span> r,</span><br><span class="line">a.dt,</span><br><span class="line">a.userid</span><br><span class="line"><span class="keyword">FROM</span> login a</span><br><span class="line">)  t <span class="keyword">GROUP</span> <span class="keyword">BY</span> t.userid,t.r</span><br></pre></td></tr></table></figure>
+<p>通过这个固定的时间聚合就可以求出对应的结果啦。。。</p>
+<p><em>hive建表的时候如果是sequencefile不能lload格式为txt格式的数据，需要用一张临时表存储数据，然后INSERT OVERWRITE到新建的表，存储为sequencefile</em><br>
+<strong>hive中行转列，列转行的操作</strong></p>
+<p><strong>concat函数和concat_ws函数</strong><br>
+1、语法及使用特点：CONCAT(str1,str2,…) 返回结果为连接参数产生的字符串。如有任何一个参数为NULL ，则返回值为 NULL。可以有一个或多个参数。<br>
+2、使用函数CONCAT_WS（）。使用语法为：CONCAT_WS(separator,str1,str2,…)<br>
+collect_list 不去重，collect_set 去重。 column的数据类型要求是string</p>
+<p><strong>列转行</strong></p>
+<table>
+<thead>
+<tr>
+<th>uid</th>
+<th>lifestage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>buy car,buy house</td>
+</tr>
+<tr>
+<td>2</td>
+<td>high salary,buy car,qu wife</td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>这张lifestage表 表表示每个人的人生阶段，请统计出处于每个人生阶段的人数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> satge_someone,<span class="keyword">COUNT</span>(<span class="keyword">DISTINCT</span> uid) <span class="keyword">FROM</span> </span><br><span class="line">lifestage  LATERAL <span class="keyword">VIEW</span>  explode(<span class="keyword">split</span>(stage,<span class="string">','</span>)) lifestage_tmp <span class="keyword">as</span> satge_someone</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> satge_someone;</span><br></pre></td></tr></table></figure>
+<p><em>==explode与lateral view在关系型数据库中本身是不该出现的，因为他的出现本身就是在操作不满足第一范式的数据（每个属性都不可再分），本身已经违背了数据库的设计原理（不论是业务系统还是数据仓库系统），不过大数据技术普及后，很多类似pv，uv的数据，在业务系统中是存贮在非关系型数据库中，用json存储的概率比较大，直接导入hive为基础的数仓系统中，就需要经过ETL过程解析这类数据，explode与lateral view在这种场景下大显身手。==</em></p>
 
                 
 
@@ -282,12 +310,12 @@ data queue由Data Streamer读取。client将NameNode返回的分配的可写的D
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/hadoop7/" data-toggle="tooltip" data-placement="top" title="Hdfs上恢复删除文件的方法">&larr; Previous Post</a>
+                            <a href="/article/文件存储格式/" data-toggle="tooltip" data-placement="top" title="大数据文件存储格式对比">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/mysqltopn/" data-toggle="tooltip" data-placement="top" title="Mysql TOP函数实现">Next Post &rarr;</a>
+                            <a href="/article/mysql1/" data-toggle="tooltip" data-placement="top" title="mysql常见">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -337,7 +365,7 @@ data queue由Data Streamer读取。client将NameNode返回的分配的可写的D
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs副本放置策略"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">hdfs&#x526F;&#x672C;&#x653E;&#x7F6E;&#x7B56;&#x7565;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs磁盘放置策略"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Hdfs&#x78C1;&#x76D8;&#x653E;&#x7F6E;&#x7B56;&#x7565;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hdfs读写流程"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">hdfs&#x8BFB;&#x5199;&#x6D41;&#x7A0B;</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-hive-sql问题"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1&#x3001;Hive SQL&#x95EE;&#x9898;</span></a></li></ol>
         
         </div>
       </aside>
@@ -357,7 +385,7 @@ data queue由Data Streamer读取。client将NameNode返回的分配的可写的D
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer">hdfs hadoop pid safemode balancer</a>
+                          <a class="tag" href="/tags/#hive" title="hive">hive</a>
                         
                     </div>
                 </section>
