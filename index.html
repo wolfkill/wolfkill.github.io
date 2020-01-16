@@ -134,6 +134,13 @@
 
                         
                         <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -142,13 +149,6 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
-                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
@@ -267,6 +267,36 @@ hadoop2.6版本安装步骤
         <div class="tags">
             
               <a href="/tags/#SequenceFile Avro parquet  Orc" title="SequenceFile Avro parquet  Orc">SequenceFile Avro parquet  Orc</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/hive1/">
+        <h2 class="post-title">
+                                 
+            hive解决中文乱码
+        </h2>
+        <h3 class="post-subtitle">
+            SequenceFile Avro parquet  Orc的对比
+        </h3>
+        <div class="post-content-preview">
+            创建表的时候，commnet说明字段包含中文，表创建成功之后，中文显示乱码。
+1234567891011121314create external table movie(userID int comment '用户ID',movieID int comment '电影ID',rating int comment '电影评分',timestamped bigint comment '评分时间......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by SpuerCheng on
+            2018-03-15
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#hive utf8" title="hive utf8">hive utf8</a>
             
         </div>
     
@@ -543,38 +573,6 @@ Top1实现
 
 <div class="post-preview">
 
-    <a href="/article/hadoop4/">
-        <h2 class="post-title">
-                                 
-            Block、小文件、HDFS架构、SNN流程
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            Block的理解
-*物理角度的块概念：
-扇区是磁盘最小的物理存储单元，一般而言是每个扇区512B大小，但是操作通常不直接管理每一个扇区，而是通过将若干个扇区组成的一个更大的集合来去进行操作管理。 这个比扇区更大的集合，在Windows下叫做簇；在Linux下叫做块（block）。
-建立在该磁盘之上的文件系统也有‘block’的概念，一般为磁盘‘block’大小的整数倍。对于用户来说，这些读写......
-        </div>
-    </a>
-    
-        <p class="post-meta" style="margin: 10px 0;">
-            Posted by SpuerCheng on
-            2017-12-02
-        </p>
-        <div class="tags">
-            
-              <a href="/tags/#hdfs hadoop" title="hdfs hadoop">hdfs hadoop</a>
-            
-        </div>
-    
-
-</div>
-<hr>
-
-<div class="post-preview">
-
     <a href="/article/hadoop3/">
         <h2 class="post-title">
                                  
@@ -610,31 +608,29 @@ Top1实现
 
 <div class="post-preview">
 
-    <a href="/article/hadoop2/">
+    <a href="/article/hadoop4/">
         <h2 class="post-title">
                                  
-            Hadoop的jps命令详解和linux的两种机制
+            Block、小文件、HDFS架构、SNN流程
         </h2>
         <h3 class="post-subtitle">
-            linux和hadoop
+            
         </h3>
         <div class="post-content-preview">
-            学习笔记.
-
-Hadoop的jps命令
-1、jps最主要的功能是查看java接口的进程号，全称是jps(Java Virtual Machine Process Status Tool)，显示所有java进程pid的命令。**
-注解：jps命令有个地方很不好，似乎只能显示当前用户的java进程，要显示其他用户的还是只能用unix/linux的ps命令。
-2、命令jps类似于Linux下的ps......
+            Block的理解
+*物理角度的块概念：
+扇区是磁盘最小的物理存储单元，一般而言是每个扇区512B大小，但是操作通常不直接管理每一个扇区，而是通过将若干个扇区组成的一个更大的集合来去进行操作管理。 这个比扇区更大的集合，在Windows下叫做簇；在Linux下叫做块（block）。
+建立在该磁盘之上的文件系统也有‘block’的概念，一般为磁盘‘block’大小的整数倍。对于用户来说，这些读写......
         </div>
     </a>
     
         <p class="post-meta" style="margin: 10px 0;">
             Posted by SpuerCheng on
-            2017-10-11
+            2017-12-02
         </p>
         <div class="tags">
             
-              <a href="/tags/#SuperCheng" title="SuperCheng">SuperCheng</a>
+              <a href="/tags/#hdfs hadoop" title="hdfs hadoop">hdfs hadoop</a>
             
         </div>
     
@@ -691,6 +687,10 @@ Hadoop的jps命令
             
         
             
+            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
+            
+        
+            
             <a href="/tags/#hdfs hadoop pid safemode balancer" title="hdfs hadoop pid safemode balancer" rel="1">hdfs hadoop pid safemode balancer</a>
             
         
@@ -699,11 +699,7 @@ Hadoop的jps命令
             
         
             
-            <a href="/tags/#SuperCheng" title="SuperCheng" rel="1">SuperCheng</a>
-            
-        
-            
-            <a href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index" rel="1">mysql 行转列 列转行 substring_index</a>
+            <a href="/tags/#hive utf8" title="hive utf8" rel="1">hive utf8</a>
             
         
             
@@ -711,11 +707,15 @@ Hadoop的jps命令
             
         
             
+            <a href="/tags/#mysql" title="mysql" rel="1">mysql</a>
+            
+        
+            
             <a href="/tags/#mysql top" title="mysql top" rel="1">mysql top</a>
             
         
             
-            <a href="/tags/#mysql" title="mysql" rel="1">mysql</a>
+            <a href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index" rel="1">mysql 行转列 列转行 substring_index</a>
             
         
             
@@ -781,15 +781,15 @@ Hadoop的jps命令
         </li>
       
         <li>
+          <a href="/article/hive1/">hive解决中文乱码</a>
+        </li>
+      
+        <li>
           <a href="/article/hivesql/">hive常见</a>
         </li>
       
         <li>
           <a href="/article/mysql1/">mysql常见</a>
-        </li>
-      
-        <li>
-          <a href="/article/hadoop7/">Hdfs上恢复删除文件的方法</a>
         </li>
       
     </ul>
@@ -812,7 +812,7 @@ Hadoop的jps命令
         
     <h5>ARCHIVES</h5>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a><span class="archive-list-count">1</span></li></ul>
     </div>
 
         <hr>

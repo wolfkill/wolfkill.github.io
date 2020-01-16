@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          mysql常见 - SpuerCheng | Blog
+          hive解决中文乱码 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/mysql1/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hive1/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index">mysql 行转列 列转行 substring_index</a>
+                              <a class="tag" href="/tags/#hive utf8" title="hive utf8">hive utf8</a>
                             
                         </div>
-                        <h1>mysql常见</h1>
+                        <h1>hive解决中文乱码</h1>
                         <h2 class="subheading">SequenceFile Avro parquet  Orc的对比</h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2018-03-11
+                            2018-03-15
                         </span>
                     </div>
                 
@@ -212,216 +212,393 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h2 id="mysql行转列">mysql行转列</h2>
-<p>有如下的表格 t</p>
+                <p>创建表的时候，commnet说明字段包含中文，表创建成功之后，中文显示乱码。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">external</span> <span class="keyword">table</span> movie(</span><br><span class="line">userID <span class="built_in">int</span> <span class="keyword">comment</span> <span class="string">'用户ID'</span>,</span><br><span class="line">movieID <span class="built_in">int</span> <span class="keyword">comment</span> <span class="string">'电影ID'</span>,</span><br><span class="line">rating <span class="built_in">int</span> <span class="keyword">comment</span> <span class="string">'电影评分'</span>,</span><br><span class="line">timestamped <span class="built_in">bigint</span> <span class="keyword">comment</span> <span class="string">'评分时间戳'</span>,</span><br><span class="line">movieName <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">'电影名字'</span>, </span><br><span class="line">movieType <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">'电影类型'</span>, </span><br><span class="line">sex <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">'性别'</span>, </span><br><span class="line">age <span class="built_in">int</span> <span class="keyword">comment</span> <span class="string">'年龄'</span>, </span><br><span class="line">occupation <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">'职业'</span>, </span><br><span class="line">zipcode <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">'邮政编码'</span></span><br><span class="line">) <span class="keyword">comment</span> <span class="string">'影评三表合一'</span> </span><br><span class="line"><span class="keyword">row</span> <span class="keyword">format</span> <span class="keyword">delimited</span> <span class="keyword">fields</span> <span class="keyword">terminated</span> <span class="keyword">by</span> <span class="string">","</span></span><br><span class="line">location <span class="string">'/hive/movie'</span>;</span><br></pre></td></tr></table></figure>
+<p>例如创建这个表，使用show formatted movie 会显示中文乱码，这是因为MYSQL中的元数据据出现乱码。（元数据中编码为latin1）。所以我们修改元数据的编码格式。</p>
+<h4 id="mysql中hive元数据表解析">mysql中hive元数据表解析：</h4>
+<p><strong>Hive版本的元数据表</strong><br>
+<strong>version表</strong></p>
 <table>
 <thead>
 <tr>
-<th>year</th>
-<th>month</th>
-<th>amount</th>
+<th>字段</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1991</td>
-<td>1</td>
-<td>1.1</td>
+<td>VER_ID</td>
+<td>ID主键</td>
 </tr>
 <tr>
-<td>1991</td>
-<td>2</td>
-<td>1.2</td>
+<td>SCHEMA_VERSION</td>
+<td>Hive 版本</td>
 </tr>
 <tr>
-<td>1991</td>
-<td>3</td>
-<td>1.3</td>
-</tr>
-<tr>
-<td>1991</td>
-<td>4</td>
-<td>1.4</td>
-</tr>
-<tr>
-<td>1992</td>
-<td>1</td>
-<td>2.1</td>
-</tr>
-<tr>
-<td>1992</td>
-<td>2</td>
-<td>2.2</td>
-</tr>
-<tr>
-<td>1992</td>
-<td>3</td>
-<td>2.3</td>
-</tr>
-<tr>
-<td>1992</td>
-<td>4</td>
-<td>2.4</td>
+<td>VERSION_COMMENT</td>
+<td>版本说明</td>
 </tr>
 </tbody>
 </table>
-<p>转换成</p>
+<p><strong>Hive数据库相关元数据表</strong><br>
+<strong>DBS表:</strong></p>
 <table>
 <thead>
 <tr>
-<th>year</th>
-<th>m1</th>
-<th>m2</th>
-<th>m3</th>
-<th>m4</th>
+<th>字段</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1991</td>
-<td>1.1</td>
-<td>1.2</td>
-<td>1.3</td>
-<td>1.4</td>
+<td>DB_ID</td>
+<td>数据库ID</td>
 </tr>
 <tr>
-<td>1992</td>
-<td>2.1</td>
-<td>2.2</td>
-<td>2.3</td>
-<td>2.4</td>
+<td>DESC</td>
+<td>数据库描述</td>
+</tr>
+<tr>
+<td>DB_LOCATION_URI</td>
+<td>数据库HDFS路径</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td>Hive数据库名</td>
+</tr>
+<tr>
+<td>OWNER_NAME</td>
+<td>Hive数据库所有者用户名</td>
+</tr>
+<tr>
+<td>OWNER_TYPE</td>
+<td>Hive所有者角色</td>
 </tr>
 </tbody>
 </table>
-<p>下面直接上代码，主要思想就是使用聚合函数，将必要的部分聚合起来哦</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.year,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">1</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">2</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">3</span>,t.amount,<span class="number">0</span>)) m1,</span><br><span class="line"><span class="keyword">max</span>(<span class="keyword">if</span>(t.month=<span class="number">4</span>,t.amount,<span class="number">0</span>)) m1</span><br><span class="line"><span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> t.year</span><br></pre></td></tr></table></figure>
-<h2 id="列转行">列转行</h2>
-<p>就是上面的结果表转换回到原始表，方法就是使用union函数将这些组合起来：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.year,<span class="number">1</span> <span class="keyword">as</span> <span class="string">'month'</span>,m1 <span class="keyword">from</span> tmp </span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">2</span> <span class="keyword">as</span> <span class="string">'month'</span>,m2 <span class="keyword">from</span> tmp</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">3</span> <span class="keyword">as</span> <span class="string">'month'</span>,m3 <span class="keyword">from</span> tmp</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">select</span> t.year,<span class="number">4</span> <span class="keyword">as</span> <span class="string">'month'</span>,m4 <span class="keyword">from</span> tmp</span><br></pre></td></tr></table></figure>
-<h2 id="substring_index的使用拆分逗号分隔的一列">substring_index的使用拆分逗号分隔的一列</h2>
+<p><strong>Hive表和视图相关的元数据表</strong><br>
+<strong>TBLS表</strong></p>
 <table>
 <thead>
 <tr>
-<th>user</th>
-<th>profile</th>
+<th>字段</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>abc</td>
-<td>key1:value,key2:value2</td>
+<td>TBL_ID</td>
+<td>表ID</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key1:value,key2:value2,key3:value3,key4:value4</td>
+<td>CREATE_TIME</td>
+<td>创建时间</td>
 </tr>
 <tr>
-<td>xyz</td>
-<td>key1:value</td>
+<td>DB_ID</td>
+<td>数据库ID</td>
+</tr>
+<tr>
+<td>LAST_ACCESS_TIME</td>
+<td>上次访问时间</td>
+</tr>
+<tr>
+<td>OWNER</td>
+<td>所有者</td>
+</tr>
+<tr>
+<td>RETENTION</td>
+<td>保留字段</td>
+</tr>
+<tr>
+<td>SD_ID</td>
+<td>序列化配置信息</td>
+</tr>
+<tr>
+<td>TBL_NAME</td>
+<td>表名</td>
+</tr>
+<tr>
+<td>TBL_TYPE</td>
+<td>表类型</td>
+</tr>
+<tr>
+<td>VIEW_EXPANDED_TEXT</td>
+<td>视图的详细HQL</td>
+</tr>
+<tr>
+<td>VIEW_ORIGINAL_TEXT</td>
+<td>视图的原始HQL</td>
 </tr>
 </tbody>
 </table>
-<p><strong>将上面的表格转换成下面的形式</strong></p>
+<p><strong>TTABLE_PARAMS表</strong></p>
 <table>
 <thead>
 <tr>
-<th>user</th>
-<th>profile_key</th>
-<th>profile_value</th>
+<th>字段</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>abc</td>
-<td>key1</td>
-<td>value</td>
+<td>TBL_ID</td>
+<td>表ID</td>
 </tr>
 <tr>
-<td>abc</td>
-<td>key2</td>
-<td>value2</td>
+<td>PARAM_KEY</td>
+<td>表属性名</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key1</td>
-<td>value</td>
-</tr>
-<tr>
-<td>def</td>
-<td>key2</td>
-<td>value2</td>
-</tr>
-<tr>
-<td>def</td>
-<td>key3</td>
-<td>value3</td>
-</tr>
-<tr>
-<td>def</td>
-<td>key4</td>
-<td>value4</td>
-</tr>
-<tr>
-<td>xyz</td>
-<td>key1</td>
-<td>value</td>
+<td>PARAM_VALUE</td>
+<td>表属性值</td>
 </tr>
 </tbody>
 </table>
-<p>==首先来介绍下这个函数substring_index(str,delim,count)：==<br>
-str:表示要截取u的字符串，这个很容易理解；<br>
-delim:这个表示按照哪个字符来分隔；<br>
-count:正数表示从左到右，负数表示从右到左；<br>
-<a href="http://str=www.wikibt.com" target="_blank" rel="noopener">str=www.wikibt.com</a><br>
-substring_index(str,’.’,1)<br>
-<strong>结果是：www</strong>其实多体会下，也很好理解。</p>
-<p>下面来介绍下mysql自带的一个表，里面记录的是一些函数使用方法的url，我们可以灵活的使用这个表：<strong>mysql.help_topic</strong>里面有553条函数使用方法的url。</p>
-<p>思路：1、先考虑把这个文件格式转化成key:value形式；<br>
-			2、然后再转化成K:V格式。<br>
-			3、使用substring_index函数时，里面的count值如何确定？count值应该是字段长度减一？</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> t.user,substring_Index(t.profile,<span class="string">","</span>,h.help_topic_id+<span class="number">1</span>) <span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">join</span> mysql.help_topic h <span class="keyword">on</span> h.help_topic_id &lt; <span class="keyword">length</span>(t.profile) - <span class="keyword">length</span>(<span class="keyword">replace</span>(t.profile,<span class="string">","</span>,<span class="string">""</span>))+<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
-<p>上面的sql可以将user分配到每一个profile上；</p>
+<p><strong>Hive 文件存储信息相关的元数据</strong><br>
+<strong>SDS表</strong></p>
 <table>
 <thead>
 <tr>
-<th>user</th>
-<th>profile</th>
+<th>字段</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>abc</td>
-<td>key:value1</td>
+<td>SD_ID</td>
+<td>存储信息ID</td>
 </tr>
 <tr>
-<td>abc</td>
-<td>key:value1 ,key2:value2</td>
+<td>CD_ID</td>
+<td>字段信息ID</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key:value1</td>
+<td>INPUT_FORMAT</td>
+<td>文件输入格式</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key:value1 ,key2:value2</td>
+<td>IS_COMPRESSED</td>
+<td>是否压缩</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key:value1 ,key2:value2, key3:value3</td>
+<td>IS_STOREDASSUBDIRECTORIES</td>
+<td>是否以子目录存储</td>
 </tr>
 <tr>
-<td>def</td>
-<td>key:value1 ,key2:value2, key3:value3, key4:value4</td>
+<td>LOCATION</td>
+<td>HDFS路径</td>
 </tr>
 <tr>
-<td>xyz</td>
-<td>key:value1</td>
+<td>NUM_BUCKETS</td>
+<td>分桶</td>
+</tr>
+<tr>
+<td>OUTPUT_FORMAT</td>
+<td>文件输出格式</td>
+</tr>
+<tr>
+<td>SERDE_ID</td>
+<td>序列化类ID</td>
 </tr>
 </tbody>
 </table>
-<p>最后就是比较简单的了：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> a.user,</span><br><span class="line">substring_index(a.profile,<span class="string">":"</span>,<span class="number">1</span>) <span class="keyword">as</span> <span class="string">'profile_key'</span>,</span><br><span class="line">substring_index(a.profile,<span class="string">":"</span>,<span class="number">-1</span>) <span class="keyword">as</span> <span class="string">'profile_value'</span><span class="keyword">from</span> </span><br><span class="line">(<span class="keyword">select</span> t.user,substring_index(substring_Index(t.profile,<span class="string">","</span>,h.help_topic_id+<span class="number">1</span>),<span class="string">","</span>,<span class="number">-1</span>) <span class="keyword">as</span> profile <span class="keyword">from</span> tmp t</span><br><span class="line"><span class="keyword">join</span> mysql.help_topic h <span class="keyword">on</span> h.help_topic_id &lt; </span><br><span class="line"><span class="keyword">length</span>(t.profile) - <span class="keyword">length</span>(<span class="keyword">replace</span>(t.profile,<span class="string">","</span>,<span class="string">""</span>))+<span class="number">1</span>) <span class="keyword">as</span> a;</span><br></pre></td></tr></table></figure>
-<p><strong>好了这就是mysql学习中遇见的几个小问题，这里和大家分享下。</strong></p>
+<p><strong>SERDES表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SERDE_ID</td>
+<td>序列化类配置ID</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td>序列化类别名</td>
+</tr>
+<tr>
+<td>SLIB</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SERDE_PARAMS 表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SERDE_ID</td>
+<td>序列化类配置ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>属性名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td>属性名</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hive表字段相关元数据表</strong><br>
+<strong>COLUMNS_V2表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CD_ID</td>
+<td>字段信息ID</td>
+</tr>
+<tr>
+<td>COMMENT</td>
+<td>字段注释</td>
+</tr>
+<tr>
+<td>COLUMN_NAME</td>
+<td>字段名</td>
+</tr>
+<tr>
+<td>TYPE_NAME</td>
+<td>字段类型</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hive表分区相关元数据表</strong><br>
+<strong>PARTITIONS 表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PART_ID</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>CREATE_TIME</td>
+<td>分区创建时间</td>
+</tr>
+<tr>
+<td>LAST_ACCESS_TIME</td>
+<td>最后一次访问时间</td>
+</tr>
+<tr>
+<td>PART_NAME</td>
+<td>分区名</td>
+</tr>
+<tr>
+<td>SD_ID</td>
+<td>分区存储ID</td>
+</tr>
+<tr>
+<td>TBL_ID</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>PARTITION_KEYS 表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TBL_ID</td>
+<td>表ID</td>
+</tr>
+<tr>
+<td>PKEY_COMMENT</td>
+<td>分区字段名说明</td>
+</tr>
+<tr>
+<td>PKEY_NAME</td>
+<td>分区字段名</td>
+</tr>
+<tr>
+<td>PKEY_TYPE</td>
+<td>分区字段类型</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>PARTITION_KEY_VALS 表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PART_ID</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>PART_KEY_VAL</td>
+<td>分区字段值</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>PARTITION_PARAMS 表</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PART_ID</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>分区属性名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>所以要修改中文乱码问题我们把元数据对应的表的编码格式改成utf8就可以了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">alter table COLUMNS_V2 modify column COMMENT varchar(256) character set utf8;</span><br><span class="line">alter table TABLE_PARAMS modify column PARAM_VALUE varchar(4000) character set utf8;</span><br><span class="line">alter table PARTITION_PARAMS modify column PARAM_VALUE varchar(4000) character set utf8 ;</span><br><span class="line">alter table PARTITION_KEYS modify column PKEY_COMMENT varchar(4000) character set utf8;</span><br><span class="line">alter table INDEX_PARAMS modify column PARAM_VALUE varchar(4000) character set utf8;</span><br></pre></td></tr></table></figure>
+<p>然后修改metastore的连接url:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>javax.jdo.option.ConnectionURL<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>jdbc:mysql://hadoop01:3306/hadoop1_hive?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=UTF-8<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这里面需要注意的是amp转义字符。</p>
 
                 
 
@@ -430,12 +607,12 @@ substring_index(str,’.’,1)<br>
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/hivesql/" data-toggle="tooltip" data-placement="top" title="hive常见">&larr; Previous Post</a>
+                            <a href="/article/文件存储格式/" data-toggle="tooltip" data-placement="top" title="大数据文件存储格式对比">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/hadoop7/" data-toggle="tooltip" data-placement="top" title="Hdfs上恢复删除文件的方法">Next Post &rarr;</a>
+                            <a href="/article/hivesql/" data-toggle="tooltip" data-placement="top" title="hive常见">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -485,7 +662,7 @@ substring_index(str,’.’,1)<br>
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#mysql行转列"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">mysql&#x884C;&#x8F6C;&#x5217;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#列转行"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x5217;&#x8F6C;&#x884C;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#substring_index的使用拆分逗号分隔的一列"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">substring_index&#x7684;&#x4F7F;&#x7528;&#x62C6;&#x5206;&#x9017;&#x53F7;&#x5206;&#x9694;&#x7684;&#x4E00;&#x5217;</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#mysql中hive元数据表解析"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">mysql&#x4E2D;hive&#x5143;&#x6570;&#x636E;&#x8868;&#x89E3;&#x6790;&#xFF1A;</span></a></li></ol>
         
         </div>
       </aside>
@@ -505,7 +682,7 @@ substring_index(str,’.’,1)<br>
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#mysql 行转列 列转行 substring_index" title="mysql 行转列 列转行 substring_index">mysql 行转列 列转行 substring_index</a>
+                          <a class="tag" href="/tags/#hive utf8" title="hive utf8">hive utf8</a>
                         
                     </div>
                 </section>
