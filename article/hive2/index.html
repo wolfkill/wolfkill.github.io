@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Hdfs上恢复删除文件的方法 - SpuerCheng | Blog
+          HiveSQL1 - SpuerCheng | Blog
         
     </title>
 
-    <link rel="canonical" href="http://www.ruozedata.com/article/hadoop7/">
+    <link rel="canonical" href="http://www.ruozedata.com/article/hive2/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -88,14 +88,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
+                              <a class="tag" href="/tags/#HIVESQL COLLECT_SET" title="HIVESQL COLLECT_SET">HIVESQL COLLECT_SET</a>
                             
                         </div>
-                        <h1>Hdfs上恢复删除文件的方法</h1>
+                        <h1>HiveSQL1</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by SpuerCheng on
-                            2018-01-15
+                            2017-09-24
                         </span>
                     </div>
                 
@@ -212,19 +212,123 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p><strong>背景：</strong> 每天操作Hdfs难免会误删除文件，下面介绍几种恢复删除文件的方法</p>
-<h4 id="通过垃圾箱恢复">通过垃圾箱恢复</h4>
-<p>HDFS 为我们提供了垃圾箱机制，当我们执行hadoop fs -rmr xxx命令之后，文件并不会马上删除，而会被移动到执行这个操作用户的 <strong>.Trash</strong> 目录下。等待一段时间后才执行真正的删除操作。这个时间可以通过在core-default.xml配置文件里添加fs.trash.interval参数设置，默认是分钟。<br>
-<img src="./trash.png" alt="enter description here"><br>
-我么可以看到具体的流程就是如图，然后我们想要恢复的话直接mv到想要的目录就可以了。</p>
-<h4 id="通过快照恢复">通过快照恢复</h4>
-<p>1、hdfs dfsadmin -allowSnapshot  path<br>
-2、hdfs dfs -createSnapshot path snapshotName<br>
-3、hdfs dfs -renameSnapshot  path oldName   newName<br>
-4、hdfs lsSnapshottableDir</p>
-<h4 id="通过编辑日志恢复">通过编辑日志恢复</h4>
-<p>hdfs oev -i edits -o edits.xml<br>
--i inputfile -o outputfile</p>
+                <h3 id="hive1">hive1</h3>
+<p>有下面这样一张表需要</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>course</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>a</td>
+</tr>
+<tr>
+<td>1</td>
+<td>b</td>
+</tr>
+<tr>
+<td>1</td>
+<td>c</td>
+</tr>
+<tr>
+<td>1</td>
+<td>e</td>
+</tr>
+<tr>
+<td>2</td>
+<td>a</td>
+</tr>
+<tr>
+<td>2</td>
+<td>c</td>
+</tr>
+<tr>
+<td>2</td>
+<td>d</td>
+</tr>
+<tr>
+<td>2</td>
+<td>f</td>
+</tr>
+<tr>
+<td>3</td>
+<td>a</td>
+</tr>
+<tr>
+<td>3</td>
+<td>b</td>
+</tr>
+<tr>
+<td>3</td>
+<td>c</td>
+</tr>
+<tr>
+<td>3</td>
+<td>e</td>
+</tr>
+</tbody>
+</table>
+<p>现在需要将其转换成如下格式。</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+<th>e</th>
+<th>f</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> t1.a,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">0</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> a,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">1</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> b,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">2</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> c,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">3</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> d,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">4</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> e,</span><br><span class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> ARRAY_CONTAINS(t1.b,t2.c[<span class="number">5</span>]) <span class="keyword">THEN</span> <span class="number">1</span> <span class="keyword">ELSE</span> <span class="number">0</span> <span class="keyword">END</span> <span class="keyword">as</span> f</span><br><span class="line"><span class="keyword">FROM</span> </span><br><span class="line">(<span class="keyword">SELECT</span> <span class="keyword">id</span> <span class="keyword">as</span> a,</span><br><span class="line">COLLECT_set(course) <span class="keyword">AS</span> b</span><br><span class="line"><span class="keyword">FROM</span> t_course </span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">id</span>) t1</span><br><span class="line"><span class="keyword">JOIN</span></span><br><span class="line">(<span class="keyword">SELECT</span> </span><br><span class="line">SORT_ARRAY(COLLECT_set(<span class="keyword">TRIM</span>(course)))  <span class="keyword">as</span> c</span><br><span class="line"> <span class="keyword">FROM</span></span><br><span class="line">  t_course) t2</span><br></pre></td></tr></table></figure>
+<p><strong>COLLECT_SET、COLLECT_LIST、SORT_ARRAY</strong><br>
+它们都是将分组中的某列转为一个数组返回，不同的是collect_list不去重而collect_set去重。</p>
+<h3 id="窗口函数参数">窗口函数参数</h3>
+<p>如果不指定ROWS BETWEEN,默认为从起点到当前行;<br>
+如果不指定ORDER BY，则将分组内所有值累加;<br>
+关键是理解ROWS BETWEEN含义,也叫做WINDOW子句：<br>
+PRECEDING：往前<br>
+FOLLOWING：往后<br>
+CURRENT ROW：当前行<br>
+UNBOUNDED：起点，</p>
+<p>UNBOUNDED PRECEDING 表示从前面的起点，</p>
+<p>UNBOUNDED FOLLOWING：表示到后面的终点<br>
+–其他AVG，MIN，MAX，和SUM用法一样。</p>
 
                 
 
@@ -233,12 +337,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/article/mysql1/" data-toggle="tooltip" data-placement="top" title="mysql常见">&larr; Previous Post</a>
+                            <a href="/article/hadoop2/" data-toggle="tooltip" data-placement="top" title="Hadoop的jps命令详解和linux的两种机制">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/article/hadoop5/" data-toggle="tooltip" data-placement="top" title="副本放置、读写流程、PID文件、磁盘均衡、安全模式">Next Post &rarr;</a>
+                            <a href="/article/mysql/" data-toggle="tooltip" data-placement="top" title="Mysql引擎区别">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -288,7 +392,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过垃圾箱恢复"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5783;&#x573E;&#x7BB1;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过快照恢复"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x5FEB;&#x7167;&#x6062;&#x590D;</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过编辑日志恢复"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x901A;&#x8FC7;&#x7F16;&#x8F91;&#x65E5;&#x5FD7;&#x6062;&#x590D;</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hive1"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">hive1</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#窗口函数参数"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x7A97;&#x53E3;&#x51FD;&#x6570;&#x53C2;&#x6570;</span></a></li></ol>
         
         </div>
       </aside>
@@ -308,7 +412,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#hdfs  Trash SnapShot fsimage edits" title="hdfs  Trash SnapShot fsimage edits">hdfs  Trash SnapShot fsimage edits</a>
+                          <a class="tag" href="/tags/#HIVESQL COLLECT_SET" title="HIVESQL COLLECT_SET">HIVESQL COLLECT_SET</a>
                         
                     </div>
                 </section>
